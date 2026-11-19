@@ -10,12 +10,20 @@ static NSDictionary<NSString *, NSString *> *gProcCN = nil;
 
 static void LoadDict(void) {
     if (gProcCN != nil) return;
-    NSArray *paths = @[
+    // 优先 App 内同目录（注入 App 场景），再退到系统路径（MobileSubstrate 场景）
+    NSString *bundleDir = [[NSBundle mainBundle] bundlePath];
+    NSMutableArray *paths = [NSMutableArray array];
+    if (bundleDir.length > 0) {
+        [paths addObject:[bundleDir stringByAppendingPathComponent:@"proc-cn.plist"]];
+        [paths addObject:[[bundleDir stringByDeletingLastPathComponent]
+                          stringByAppendingPathComponent:@"proc-cn.plist"]];
+    }
+    [paths addObjectsFromArray:@[
         @"/var/jb/Library/Application Support/CocoaTopAN/proc-cn.plist",
         @"/var/jb/usr/share/cocoatop-an/proc-cn.plist",
         @"/Library/Application Support/CocoaTopAN/proc-cn.plist",
         @"/var/jb/Library/MobileSubstrate/DynamicLibraries/proc-cn.plist",
-    ];
+    ]];
     for (NSString *p in paths) {
         if (![[NSFileManager defaultManager] fileExistsAtPath:p]) continue;
         NSDictionary *d = [NSDictionary dictionaryWithContentsOfFile:p];

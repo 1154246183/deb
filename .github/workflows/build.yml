@@ -50,7 +50,7 @@ jobs:
             -install_name /var/jb/Library/MobileSubstrate/DynamicLibraries/CocoaTopAN.dylib \
             -framework Foundation -framework UIKit \
             -Wl,-platform_version,ios,15.0,16.5 \
-            -O2 -o out/CocoaTopAN.dylib Tweak.x
+            -O2 -o out/CocoaTopAN.dylib Tweak.m
           ls -l out/
           file out/CocoaTopAN.dylib
 

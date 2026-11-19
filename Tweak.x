@@ -1,23 +1,23 @@
-// CocoaTop 注解 —— 给进程列表加中文说明
-// 编译：GitHub Actions（见 .github/workflows/build.yml）
-// 安装：deb 包，注入 CocoaTop（ru.domo.cocoatop64）
+// CocoaTop 中文注解 —— 给进程列表加中文说明
+// 适配：XinaA15 (rootless, /var/jb) / iOS 16 / arm64e
+// 显示：进程名 · 中文说明
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
 
-// ---------- 翻译表 ----------
 static NSDictionary<NSString *, NSString *> *gProcCN = nil;
 
 static void LoadDict(void) {
     if (gProcCN != nil) return;
-    // 候选路径，按优先级
     NSArray *paths = @[
         @"/var/jb/Library/Application Support/CocoaTopAN/proc-cn.plist",
         @"/var/jb/usr/share/cocoatop-an/proc-cn.plist",
         @"/Library/Application Support/CocoaTopAN/proc-cn.plist",
+        @"/var/jb/Library/MobileSubstrate/DynamicLibraries/proc-cn.plist",
     ];
     for (NSString *p in paths) {
+        if (![[NSFileManager defaultManager] fileExistsAtPath:p]) continue;
         NSDictionary *d = [NSDictionary dictionaryWithContentsOfFile:p];
         if (d.count > 0) {
             gProcCN = [d copy];
@@ -26,30 +26,21 @@ static void LoadDict(void) {
         }
     }
     gProcCN = @{};
-    NSLog(@"[CocoaTopAN] no dictionary found, disabled");
+    NSLog(@"[CocoaTopAN] dictionary not found");
 }
 
-// 提取进程名：可能是 "name" 或 "name (pid)" 或 裸路径
 static NSString *ProcKey(NSString *raw) {
     if (raw.length == 0) return nil;
     NSString *s = [raw stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-    // 去掉末尾的 " (1234)"
     NSRange r = [s rangeOfString:@" (" options:NSBackwardsSearch];
-    if (r.location != NSNotFound && [s hasSuffix:@")"]) {
-        s = [s substringToIndex:r.location];
-    }
-    // 若是路径，取末段
-    if ([s containsString:@"/"]) {
-        s = [s lastPathComponent];
-    }
+    if (r.location != NSNotFound && [s hasSuffix:@")"]) s = [s substringToIndex:r.location];
+    if ([s containsString:@"/"]) s = [s lastPathComponent];
     return s;
 }
 
-// ---------- 核心：改写文本 ----------
 static NSString *Annotate(NSString *original) {
-    static NSString *marker = @" · ";
     if (original.length == 0) return original;
-    if ([original containsString:marker]) return original;   // 已加过，别叠加
+    if ([original containsString:@" · "]) return original;
 
     LoadDict();
     if (gProcCN.count == 0) return original;
@@ -60,36 +51,23 @@ static NSString *Annotate(NSString *original) {
     NSString *cn = gProcCN[key];
     if (cn.length == 0) return original;
 
-    // 保留原名的 pid 后缀（如果有）
     NSRange r = [original rangeOfString:@" (" options:NSBackwardsSearch];
     if (r.location != NSNotFound && [original hasSuffix:@")"]) {
-        NSString *suffix = [original substringFromIndex:r.location];
-        return [NSString stringWithFormat:@"%@%@%@%@", key, marker, cn, suffix];
+        return [NSString stringWithFormat:@"%@ · %@%@", key, cn, [original substringFromIndex:r.location]];
     }
-    return [NSString stringWithFormat:@"%@%@%@", original, marker, cn];
+    return [NSString stringWithFormat:@"%@ · %@", original, cn];
 }
 
-#pragma mark - Hook
-
-// 1) UILabel.setText:
 static void (*orig_setText)(id, SEL, NSString *);
 static void hook_setText(id self, SEL _cmd, NSString *text) {
     orig_setText(self, _cmd, Annotate(text));
 }
 
-// 2) UITableViewCell.setTitle / 各种 setTitle:forState:
-static void (*orig_setTitle)(id, SEL, NSString *);
-static void hook_setTitle(id self, SEL _cmd, NSString *t) {
-    orig_setTitle(self, _cmd, Annotate(t));
-}
-
-// 3) UIButton.setTitle:forState:
 static void (*orig_setTitleState)(id, SEL, NSString *, UIControlState);
 static void hook_setTitleState(id self, SEL _cmd, NSString *t, UIControlState st) {
     orig_setTitleState(self, _cmd, Annotate(t), st);
 }
 
-// 4) UILabel.setAttributedText: —— 有些列表用富文本
 static void (*orig_setAttrText)(id, SEL, NSAttributedString *);
 static void hook_setAttrText(id self, SEL _cmd, NSAttributedString *attr) {
     if (attr.length == 0) { orig_setAttrText(self, _cmd, attr); return; }
@@ -103,7 +81,7 @@ static void hook_setAttrText(id self, SEL _cmd, NSAttributedString *attr) {
 
 static void Swap(Class cls, SEL sel, void *repl, void **orig) {
     Method m = class_getInstanceMethod(cls, sel);
-    if (!m) return;
+    if (!m) { NSLog(@"[CocoaTopAN] missing %@", NSStringFromSelector(sel)); return; }
     *orig = method_getImplementation(m);
     method_setImplementation(m, (IMP)repl);
 }
@@ -114,6 +92,7 @@ static void Init(void) {
         LoadDict();
         Swap([UILabel class], @selector(setText:), (void *)hook_setText, (void **)&orig_setText);
         Swap([UIButton class], @selector(setTitle:forState:), (void *)hook_setTitleState, (void **)&orig_setTitleState);
-        NSLog(@"[CocoaTopAN] hooks installed, %lu entries", (unsigned long)gProcCN.count);
+        Swap([UILabel class], @selector(setAttributedText:), (void *)hook_setAttrText, (void **)&orig_setAttrText);
+        NSLog(@"[CocoaTopAN] ready, %lu entries", (unsigned long)gProcCN.count);
     }
 }

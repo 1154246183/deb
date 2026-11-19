@@ -1,0 +1,690 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>(attachme)</key>
+	<string>越狱注入链上的占位执行体。内核取不到 argv 所以显示为括号，CPU 恒为 0，两个是 jailbreakd 和 launchdhook 的子进程，属正常现象</string>
+	<key>ACCHWComponentAuthService</key>
+	<string>配件硬件认证（原装配件识别）</string>
+	<key>ASPCarryLog</key>
+	<string>苹果服务日志搬运</string>
+	<key>AWDL</key>
+	<string>苹果无线直连（AirDrop 底层）</string>
+	<key>AppPredictionIntentsHelperService</key>
+	<string>App 预测（Siri 建议、常用 App 推荐）</string>
+	<key>AppSSODaemon</key>
+	<string>单点登录守护（企业/学校账号）</string>
+	<key>AppleCredentialManagerDaemon</key>
+	<string>Apple 凭证管理</string>
+	<key>AssetCacheLocatorService</key>
+	<string>内容缓存定位（局域网缓存服务器发现）</string>
+	<key>AssetsCacheLocatorService</key>
+	<string>缓存定位</string>
+	<key>Aweme</key>
+	<string>抖音（字节跳动）。短视频 App，CPU 高时说明在播放或上传</string>
+	<key>BTLEServer</key>
+	<string>低功耗蓝牙服务（手环、传感器）</string>
+	<key>BaiduInputMethod</key>
+	<string>百度输入法（第三方键盘）</string>
+	<key>BlastDoor</key>
+	<string>沙盒解析守护。安全解析不可信内容（图片、视频、消息）</string>
+	<key>BlueTool</key>
+	<string>蓝牙固件工具。初始化蓝牙芯片</string>
+	<key>CAReportingService</key>
+	<string>CoreAnalytics 上报</string>
+	<key>CMFSyncAgent</key>
+	<string>通信过滤同步（骚扰拦截规则）</string>
+	<key>CacheDeleteAppContainerCaches</key>
+	<string>App 容器缓存清理（存储紧张时触发）</string>
+	<key>CategoriesService</key>
+	<string>App 分类服务</string>
+	<key>CloudKeychainProxy</key>
+	<string>iCloud 钥匙串代理</string>
+	<key>CommCenter</key>
+	<string>通信中心。蜂窝网络（4G/5G）、SIM 卡、运营商设置的总管</string>
+	<key>CommCenterMobileHelper</key>
+	<string>通信中心移动网络助手</string>
+	<key>ContainerMetadataExtractor</key>
+	<string>容器元数据提取（文件预览）</string>
+	<key>ContextService</key>
+	<string>上下文服务（场景感知）</string>
+	<key>CredentialProviderExtensionHelper</key>
+	<string>密码自动填充扩展</string>
+	<key>DesktopServicesHelper</key>
+	<string>桌面服务助手（文件操作、打开方式）</string>
+	<key>EnforcementService</key>
+	<string>策略强制执行服务</string>
+	<key>FinHealthXPCServices</key>
+	<string>财务健康分析</string>
+	<key>GSSCred</key>
+	<string>GSS 认证凭证缓存</string>
+	<key>GTData_lgd</key>
+	<string>个推（Getui）推送 SDK 容器 App。第三方推送服务，被多个国产 App 共用</string>
+	<key>HeuristicInterpreter</key>
+	<string>启发式解释器（智能建议）</string>
+	<key>Home</key>
+	<string>家庭 App（HomeKit 智能家居控制界面）</string>
+	<key>IDSBlastDoorService</key>
+	<string>iMessage 沙盒解析</string>
+	<key>IMDPersistenceAgent</key>
+	<string>iMessage 数据库持久化</string>
+	<key>IOMFB_bics_daemon</key>
+	<string>显示驱动守护（屏幕背光、亮度）</string>
+	<key>IOMobileFramebuffer</key>
+	<string>显示帧缓冲</string>
+	<key>InCallService</key>
+	<string>来电界面（通话中界面）</string>
+	<key>LocalStorageFileProvider</key>
+	<string>本地存储文件提供</string>
+	<key>MSUUpdate</key>
+	<string>系统更新服务</string>
+	<key>MTLCompilerService</key>
+	<string>Metal 着色器编译器。游戏和图形 App 首次运行时编译 GPU 代码</string>
+	<key>ManagedSettingsAgent</key>
+	<string>受管设置代理（家长控制、MDM 限制）</string>
+	<key>MessagesBlastDoorService</key>
+	<string>消息内容沙盒解析（防恶意图片/视频攻击）</string>
+	<key>MobileBackupCacheDeleteService</key>
+	<string>备份缓存清理</string>
+	<key>MobileGestaltHelper</key>
+	<string>设备信息查询助手（型号、序列号等硬件特征）</string>
+	<key>MobilePhone</key>
+	<string>电话 App</string>
+	<key>NDOAgent</key>
+	<string>NDO 保修代理</string>
+	<key>OTACrashCopier</key>
+	<string>OTA 崩溃复制</string>
+	<key>PassbookUIService</key>
+	<string>卡包界面</string>
+	<key>PerfPowerTelemetryClientRegistrationService</key>
+	<string>性能功耗遥测</string>
+	<key>PhoneSelfRunnerNotices</key>
+	<string>本机来电提示</string>
+	<key>PhotoPicker</key>
+	<string>相册选择器（选图界面）</string>
+	<key>PhotosFileProvider</key>
+	<string>照片文件提供器（供其他 App 访问相册）</string>
+	<key>PhotosPicker</key>
+	<string>相册选择器新版</string>
+	<key>PowerUIAgent</key>
+	<string>电源界面代理（低电量弹窗）</string>
+	<key>ProtectedCloudKeySyncing</key>
+	<string>受保护云密钥同步</string>
+	<key>QQMailNotificationExtension</key>
+	<string>QQ 邮箱通知扩展。收到新邮件时弹通知</string>
+	<key>ReportCrash</key>
+	<string>崩溃报告。进程崩溃时收集堆栈信息</string>
+	<key>ReportMemoryException</key>
+	<string>内存异常报告。进程因内存超限被杀时记录</string>
+	<key>Runner</key>
+	<string>DSH Go 本体。你正在用的这个 App，Flutter 引擎，内存占用最大属正常</string>
+	<key>SCHelper</key>
+	<string>后台任务助手</string>
+	<key>SFNotificationService</key>
+	<string>新浪财经通知服务（第三方 App 扩展）</string>
+	<key>SafariBookmarksSyncAgent</key>
+	<string>Safari 书签云同步</string>
+	<key>SafariViewService</key>
+	<string>App 内嵌 Safari 浏览器</string>
+	<key>ScreenTimeAgent</key>
+	<string>屏幕使用时间。统计 App 使用时长、限制设置</string>
+	<key>ScreenshotServicesService</key>
+	<string>截图服务。按下截图组合键后出现的编辑界面</string>
+	<key>SiriTTSService</key>
+	<string>Siri 语音合成</string>
+	<key>Spotlight</key>
+	<string>聚焦搜索。下拉搜索框背后的索引与检索</string>
+	<key>SpringBoard</key>
+	<string>主屏幕（桌面本体）。图标、Dock、文件夹、多任务卡片、锁屏、控制中心都是它。杀掉会白苹果重载</string>
+	<key>StatusKitAgent</key>
+	<string>状态共享（专注状态跨设备同步）</string>
+	<key>TestFlightServiceExtension</key>
+	<string>TestFlight 通知扩展。测试版 App 更新提醒</string>
+	<key>ThreeBarsXPCService</key>
+	<string>WiFi 信号强度评估服务</string>
+	<key>TrustedPeersHelper</key>
+	<string>受信任设备互助验证</string>
+	<key>UsageTrackingAgent</key>
+	<string>使用情况追踪（屏幕使用时间数据采集）</string>
+	<key>UserEventAgent</key>
+	<string>用户事件代理。把电源、网络、锁屏等系统事件分发给各订阅方</string>
+	<key>WallpaperMigrator</key>
+	<string>壁纸迁移工具</string>
+	<key>WiFiCloudAssetsXPCService</key>
+	<string>WiFi 云端资源</string>
+	<key>WirelessRadioManagerd</key>
+	<string>无线射频管理（WiFi/蓝牙/蜂窝共存调度）</string>
+	<key>absd</key>
+	<string>后台传输服务</string>
+	<key>accessoryd</key>
+	<string>配件管理（Lightning/USB 外设）</string>
+	<key>accountsD</key>
+	<string>账户数据库</string>
+	<key>accountsd</key>
+	<string>账户框架守护</string>
+	<key>activityd</key>
+	<string>健身记录（圆环）</string>
+	<key>adid</key>
+	<string>广告标识符服务（IDFA）</string>
+	<key>adprivacyd</key>
+	<string>广告隐私（ATT 跟踪授权）</string>
+	<key>aggregated</key>
+	<string>聚合统计。系统各模块的使用数据汇总</string>
+	<key>akd</key>
+	<string>Apple ID 认证守护</string>
+	<key>amfid</key>
+	<string>代码签名验证守护（App 启动时检查签名）</string>
+	<key>amsaccountsd</key>
+	<string>Apple 媒体服务账户</string>
+	<key>amsengagementd</key>
+	<string>Apple 媒体服务互动</string>
+	<key>analyticsd</key>
+	<string>分析数据收集</string>
+	<key>aned</key>
+	<string>神经网络引擎（ANE）守护。跑 AI 推理</string>
+	<key>announced</key>
+	<string>播报通知（Siri 朗读通知）</string>
+	<key>apfs_iosd</key>
+	<string>APFS 文件系统守护。管理苹果自研文件系统</string>
+	<key>apnsd</key>
+	<string>推送通知守护（苹果推送 APNs）</string>
+	<key>appleaccountd</key>
+	<string>Apple 账户服务</string>
+	<key>appleh13camerad</key>
+	<string>相机硬件守护（iPhone 13 的相机协处理）</string>
+	<key>appstoreagent</key>
+	<string>App Store 代理</string>
+	<key>appstored</key>
+	<string>App Store 守护。应用更新检查、下载</string>
+	<key>apsd</key>
+	<string>推送服务连接维护，常驻</string>
+	<key>asd</key>
+	<string>App Store 守护（Apple Software Deploy）。负责 App 加密验证与资源管理</string>
+	<key>askpermissiond</key>
+	<string>购买/下载询问。App Store 弹窗确认</string>
+	<key>assetsd</key>
+	<string>照片库守护。管理相册数据库、缩略图</string>
+	<key>assistant_service</key>
+	<string>Siri 后台服务</string>
+	<key>assistantd</key>
+	<string>Siri 主服务</string>
+	<key>atc</key>
+	<string>AirTraffic 同步服务（iTunes 同步）</string>
+	<key>awdd</key>
+	<string>无线诊断数据</string>
+	<key>axassetsd</key>
+	<string>辅助功能资源包</string>
+	<key>backboardd</key>
+	<string>后台事件守护。处理触摸、按键、震动、屏幕渲染合成，CPU 占用通常最高之一</string>
+	<key>backupd</key>
+	<string>iCloud 备份守护</string>
+	<key>bash</key>
+	<string>Shell 解释器（root 权限）</string>
+	<key>batteryhealthd</key>
+	<string>电池健康</string>
+	<key>bin</key>
+	<string>路径占位</string>
+	<key>biomed</key>
+	<string>Biome 数据流守护。收集行为数据供 AI 与建议使用</string>
+	<key>biomesyncd</key>
+	<string>Biome 行为数据同步</string>
+	<key>biometrickitd</key>
+	<string>生物识别（Face ID / Touch ID 硬件接口）</string>
+	<key>bird</key>
+	<string>iCloud Drive 文件同步</string>
+	<key>bluetoothd</key>
+	<string>蓝牙守护。连接耳机、手表、键鼠</string>
+	<key>bookassetd</key>
+	<string>图书资源下载</string>
+	<key>budd</key>
+	<string>设置助手守护（新机设置流程、从旧机迁移）</string>
+	<key>businessservicesd</key>
+	<string>商务消息服务（企业短信、商家聊天）</string>
+	<key>calaccessd</key>
+	<string>日历访问</string>
+	<key>calendard</key>
+	<string>日历守护</string>
+	<key>callservicesd</key>
+	<string>通话服务。电话、FaceTime 通话管理</string>
+	<key>captiveagent</key>
+	<string>强制门户检测（连公共 WiFi 时的登录页）</string>
+	<key>carkitd</key>
+	<string>车载系统连接（CarPlay）</string>
+	<key>cdpd</key>
+	<string>iCloud 数据恢复（账户恢复联系人）</string>
+	<key>cfprefsd</key>
+	<string>偏好设置守护。所有 App 的 NSUserDefaults 读写都经过它</string>
+	<key>chronod</key>
+	<string>时间组件守护。锁屏小组件、主屏幕组件、表盘的数据刷新</string>
+	<key>ckdiscretionaryd</key>
+	<string>CloudKit 后台任务</string>
+	<key>clipserviced</key>
+	<string>轻 App（App Clip）服务</string>
+	<key>cloudd</key>
+	<string>CloudKit 云同步守护，内存占用较高</string>
+	<key>cloudpaird</key>
+	<string>云配对（蓝牙设备跨设备同步）</string>
+	<key>cloudphotod</key>
+	<string>iCloud 照片同步</string>
+	<key>com.apple.AppleUserHIDDrivers</key>
+	<string>用户输入设备驱动</string>
+	<key>com.apple.CallKit.CallDirectory</key>
+	<string>来电识别目录</string>
+	<key>com.apple.CallKit.CallDirectoryMaintenance</key>
+	<string>来电识别数据维护</string>
+	<key>com.apple.FaceTime.FTConversationService</key>
+	<string>FaceTime 会话</string>
+	<key>com.apple.FontServices.UserFontManager</key>
+	<string>用户自装字体管理</string>
+	<key>com.apple.SMBClientProvider.FileProvider</key>
+	<string>SMB 网络共享（访问 NAS）</string>
+	<key>com.apple.Safari.History</key>
+	<string>Safari 历史记录</string>
+	<key>com.apple.Safari.SafeBrowsing.Service</key>
+	<string>Safari 安全浏览（钓鱼网站检测）</string>
+	<key>com.apple.VideoSubscriberAccount.DeveloperService</key>
+	<string>视频订阅开发者服务</string>
+	<key>com.apple.WebKit.GPU</key>
+	<string>网页 GPU 渲染进程</string>
+	<key>com.apple.WebKit.Networking</key>
+	<string>Safari/App 内网页的网络进程。负责发请求、下载资源</string>
+	<key>com.apple.WebKit.WebAuthn</key>
+	<string>网页 WebAuthn 认证进程</string>
+	<key>com.apple.WebKit.WebContent</key>
+	<string>Safari/App 内网页的渲染进程。跑 JS、排版、绘制页面</string>
+	<key>com.apple.accessibility.AccessibilityUIServer</key>
+	<string>辅助功能界面。缩放、朗读屏幕、辅助触控（小白点）</string>
+	<key>com.apple.accessibility.mediaaccessibilityd</key>
+	<string>媒体辅助功能（字幕、音频描述）</string>
+	<key>com.apple.quicklook.ThumbnailsAgent</key>
+	<string>快速预览缩略图生成</string>
+	<key>com.apple.sbd</key>
+	<string>沙盒守护</string>
+	<key>com.apple.siri-distributed-evaluation</key>
+	<string>Siri 分布式评估</string>
+	<key>com.apple.siri.embeddedspeech</key>
+	<string>Siri 本地语音识别引擎，内存占用较高</string>
+	<key>configd</key>
+	<string>网络配置守护。管理 IP、DNS、路由、代理设置</string>
+	<key>contactdonationagent</key>
+	<string>联系人贡献（Siri 建议）</string>
+	<key>contactsd</key>
+	<string>通讯录守护</string>
+	<key>contactsdonationagent</key>
+	<string>联系人贡献。把通讯录提供给 Siri 建议</string>
+	<key>containermanagerd</key>
+	<string>容器管理。给每个 App 分配沙盒目录</string>
+	<key>contextstored</key>
+	<string>上下文存储</string>
+	<key>coreauthd</key>
+	<string>认证服务。Face ID 解锁时的验证流程</string>
+	<key>coreduetd</key>
+	<string>CoreDuet。学习你的使用习惯，为 Siri 建议、通知排序供数据</string>
+	<key>coreidvd</key>
+	<string>身份证件验证。读取身份证/护照 NFC 芯片做实名核验</string>
+	<key>corespeechd</key>
+	<string>语音识别核心</string>
+	<key>coresymbolicationd</key>
+	<string>符号化服务。把崩溃地址翻译成函数名</string>
+	<key>crash_mover</key>
+	<string>崩溃日志归档搬运工</string>
+	<key>ctkd</key>
+	<string>加密令牌套件（智能卡、安全密钥）</string>
+	<key>cut</key>
+	<string>字段截取命令（管道临时进程）</string>
+	<key>dasd</key>
+	<string>后台任务调度（决定何时跑后台任务）</string>
+	<key>dasd.dock.persistence</key>
+	<string>后台任务持久化</string>
+	<key>dataaccessd</key>
+	<string>数据访问（Exchange、Google 账号同步）</string>
+	<key>deleted</key>
+	<string>已删除文件的延迟清理</string>
+	<key>deleted_helper</key>
+	<string>删除清理的辅助进程</string>
+	<key>destinationd</key>
+	<string>目的地预测（Siri 建议）</string>
+	<key>devicecheckd</key>
+	<string>设备完整性校验</string>
+	<key>diagnosticextensionsd</key>
+	<string>诊断扩展</string>
+	<key>diskmanagementd</key>
+	<string>磁盘管理</string>
+	<key>distnoted</key>
+	<string>分布式通知。跨进程传递通知消息</string>
+	<key>dmd</key>
+	<string>设备管理守护（MDM 企业管控）</string>
+	<key>donotdisturbd</key>
+	<string>勿扰模式</string>
+	<key>driverkitd</key>
+	<string>DriverKit 驱动守护</string>
+	<key>druid</key>
+	<string>拖放服务。iPad/iPhone 跨 App 拖拽内容</string>
+	<key>dshctl</key>
+	<string>DSH Go 的控制守护，用于手机操控（点按、读屏）</string>
+	<key>duetexpertd</key>
+	<string>Duet 专家。App 使用预测，CPU 占用常有波动</string>
+	<key>experimentsd</key>
+	<string>实验管理</string>
+	<key>extensionkitservice</key>
+	<string>扩展套件服务</string>
+	<key>fairplayd.H2</key>
+	<string>FairPlay DRM 解密。播放受版权保护的音乐视频</string>
+	<key>familycircled</key>
+	<string>家人共享守护</string>
+	<key>familynotificationd</key>
+	<string>家人共享通知</string>
+	<key>filecoordinationd</key>
+	<string>文件读写协调（多 App 同时访问同一文件）</string>
+	<key>fileproviderd</key>
+	<string>文件提供器（iCloud Drive、第三方网盘接入「文件」App）</string>
+	<key>findmydeviced</key>
+	<string>查找我的 iPhone 设备端</string>
+	<key>fmfd</key>
+	<string>查找（Find My）好友位置</string>
+	<key>fmflocatord</key>
+	<string>查找我的位置上报</string>
+	<key>followupd</key>
+	<string>后续提醒（系统重要提示，如 Apple ID 安全提醒）</string>
+	<key>fontservicesd</key>
+	<string>字体服务。系统字体加载与渲染</string>
+	<key>fseventsd</key>
+	<string>文件系统事件。监控目录变化，供备份和同步使用</string>
+	<key>gamecontrollerd</key>
+	<string>游戏手柄服务</string>
+	<key>geocorrectiond</key>
+	<string>位置纠偏</string>
+	<key>geod</key>
+	<string>地理编码。地址 ↔ 经纬度互转</string>
+	<key>grep</key>
+	<string>文本搜索命令（管道临时进程）</string>
+	<key>gyro</key>
+	<string>陀螺仪</string>
+	<key>head</key>
+	<string>取开头行命令（管道临时进程）</string>
+	<key>healthappd</key>
+	<string>健康 App 宿主</string>
+	<key>healthd</key>
+	<string>健康数据守护（HealthKit 数据存储）</string>
+	<key>healthrecordsd</key>
+	<string>健康记录（医院报告导入）</string>
+	<key>heard</key>
+	<string>听力健康服务。耳机音量监测、听力保护</string>
+	<key>homeD</key>
+	<string>家庭 App</string>
+	<key>homed</key>
+	<string>HomeKit 守护。智能家居设备控制</string>
+	<key>iconservicesagent</key>
+	<string>图标服务。生成和管理 App 图标缓存</string>
+	<key>identityservicesd</key>
+	<string>iMessage / FaceTime 身份服务，常驻且内存较高</string>
+	<key>imagent</key>
+	<string>iMessage 消息代理</string>
+	<key>ind</key>
+	<string>iCloud 通知守护</string>
+	<key>installcoordinationd</key>
+	<string>安装协调。处理 App 安装、更新、卸载的流程编排</string>
+	<key>installd</key>
+	<string>应用安装守护（通常不常驻，装 App 时才活）</string>
+	<key>intents_helper</key>
+	<string>Siri 意图助手。App 快捷指令的执行辅助</string>
+	<key>itunescloudd</key>
+	<string>iCloud 音乐资料库同步</string>
+	<key>itunesstored</key>
+	<string>iTunes Store 下载</string>
+	<key>jailbreakd</key>
+	<string>越狱核心守护。维持越狱环境、提供 root 权限提权服务</string>
+	<key>jailbreakd_safe</key>
+	<string>越狱守护的安全模式副本，主进程崩溃时备用</string>
+	<key>kbd</key>
+	<string>键盘服务。系统输入法框架</string>
+	<key>keybagd</key>
+	<string>密钥包守护。管理设备加密密钥</string>
+	<key>languageassetd</key>
+	<string>语言资源包管理</string>
+	<key>launchd</key>
+	<string>系统总管家（PID 1）。开机第一个进程，负责启动并守护其他所有进程，杀它等于重启</string>
+	<key>launchdhook</key>
+	<string>越狱注入钩子。XinaA15 用来让 launchd 加载越狱插件的补丁程序</string>
+	<key>livefileproviderd</key>
+	<string>实时文件提供器</string>
+	<key>localizationswitcherd</key>
+	<string>语言切换服务</string>
+	<key>localspeechrecognition</key>
+	<string>本地语音识别</string>
+	<key>locationd</key>
+	<string>定位守护。GPS、WiFi、基站混合定位的核心，内存占用较高</string>
+	<key>lockdownd</key>
+	<string>锁定服务。处理与电脑的配对、备份、信任</string>
+	<key>logd</key>
+	<string>系统日志守护。所有进程的日志都写给它</string>
+	<key>logd_helper</key>
+	<string>日志写入的辅助进程</string>
+	<key>lsd</key>
+	<string>LaunchServices 守护。管理 App 注册、默认打开方式、URL Scheme 路由</string>
+	<key>mDNSResponder</key>
+	<string>DNS 解析。所有域名查询都走它，也是 Bonjour 发现</string>
+	<key>mapspushd</key>
+	<string>地图推送</string>
+	<key>medialibraryd</key>
+	<string>媒体库索引</string>
+	<key>mediaremoted</key>
+	<string>媒体远程控制。锁屏和控制中心的播放控制</string>
+	<key>mediaserverd</key>
+	<string>多媒体核心。所有 App 的音视频播放、录制、解码都经过它，内存占用高很正常</string>
+	<key>mediasetupd</key>
+	<string>媒体账户设置</string>
+	<key>metrickitd</key>
+	<string>MetricKit。App 性能指标收集</string>
+	<key>misagent</key>
+	<string>配置描述文件安装代理</string>
+	<key>misd</key>
+	<string>移动安装服务</string>
+	<key>mlmodelingd</key>
+	<string>机器学习模型管理</string>
+	<key>mlruntimed</key>
+	<string>ML 运行时</string>
+	<key>mmaintenanced</key>
+	<string>移动设备维护任务</string>
+	<key>mobileactivationd</key>
+	<string>设备激活服务</string>
+	<key>mobileassetd</key>
+	<string>系统资源下载器。下载字体、语音、词典等苹果资源包</string>
+	<key>mobiletimerd</key>
+	<string>计时器/闹钟/秒表服务</string>
+	<key>nanoprefsyncd</key>
+	<string>手表偏好同步</string>
+	<key>nanoregistryd</key>
+	<string>手表注册守护。管理与 Apple Watch 的配对关系</string>
+	<key>nanoregistrylaunchd</key>
+	<string>手表注册的启动守护</string>
+	<key>navd</key>
+	<string>导航服务</string>
+	<key>ndoagent</key>
+	<string>NDO 保修检查代理</string>
+	<key>neagent</key>
+	<string>网络扩展代理</string>
+	<key>nearbyd</key>
+	<string>近场服务。AirDrop 发现、U1 芯片测距</string>
+	<key>nehelper</key>
+	<string>网络扩展助手</string>
+	<key>nesessionmanager</key>
+	<string>网络扩展会话管理（VPN）</string>
+	<key>networkserviceproxy</key>
+	<string>网络服务代理。苹果私有中继（iCloud 私密代理）</string>
+	<key>nfcacd</key>
+	<string>NFC 配件认证</string>
+	<key>nfcd</key>
+	<string>NFC 守护。刷卡、Apple Pay 感应</string>
+	<key>notificationService_lgd</key>
+	<string>乐固（LieBao）加固的通知扩展</string>
+	<key>notifyd</key>
+	<string>通知中心守护。系统内部广播消息的中转站</string>
+	<key>nsurlsessiond</key>
+	<string>后台下载守护。App 关闭后继续下载文件</string>
+	<key>online-auth-agent</key>
+	<string>在线认证代理</string>
+	<key>osanalyticshelper</key>
+	<string>系统分析助手。收集诊断数据</string>
+	<key>otpaird</key>
+	<string>OTA 配对</string>
+	<key>parsecd</key>
+	<string>Parsed（Siri 建议、Safari 建议）</string>
+	<key>passd</key>
+	<string>Wallet 卡包服务</string>
+	<key>passwordbreachd</key>
+	<string>密码泄露检测（对比已知泄露库）</string>
+	<key>pasted</key>
+	<string>剪贴板守护。跨 App 复制粘贴、通用剪贴板</string>
+	<key>peakpowermanagerd</key>
+	<string>峰值功耗管理。限制瞬时电流，保护电池</string>
+	<key>peopled</key>
+	<string>通讯录关系图谱（Siri 与共享建议）</string>
+	<key>pfd</key>
+	<string>性能分析数据收集</string>
+	<key>photoanalysisd</key>
+	<string>照片分析。人脸识别、场景分类、回忆生成（充电时才会跑）</string>
+	<key>pkd</key>
+	<string>PassKit 守护。Apple Pay、交通卡</string>
+	<key>powerd</key>
+	<string>电源管理。决定 CPU 频率、休眠策略、充电逻辑</string>
+	<key>powerlogd</key>
+	<string>电量日志</string>
+	<key>privacyaccountingd</key>
+	<string>隐私访问记账。记录哪个 App 何时访问了什么</string>
+	<key>proactiveeventtrackerd</key>
+	<string>主动事件追踪（Siri 建议的数据源）</string>
+	<key>profiled</key>
+	<string>配置描述文件管理（企业证书、VPN 配置）</string>
+	<key>progressd</key>
+	<string>进度上报（ClassKit 教育）</string>
+	<key>promotedcontentd</key>
+	<string>推荐内容服务（App Store、Apple News 的推荐）</string>
+	<key>ps</key>
+	<string>进程列表命令（你此刻看到的这个表就是它生成的）</string>
+	<key>ptpcamerad</key>
+	<string>PTP 相机协议（连接电脑导照片）</string>
+	<key>rapportd</key>
+	<string>设备互联。苹果设备间发现与通信（接力、通用剪贴板）</string>
+	<key>remindd</key>
+	<string>提醒事项守护</string>
+	<key>remoted</key>
+	<string>远程服务守护（网络代理与远端控制通道）</string>
+	<key>remotemanagementd</key>
+	<string>远程管理</string>
+	<key>replayd</key>
+	<string>录制回放服务。屏幕录制、辅助功能回放</string>
+	<key>revisiond</key>
+	<string>文档版本（iWork 版本历史）</string>
+	<key>routined</key>
+	<string>位置历史学习（常去地点）</string>
+	<key>rtcreportingd</key>
+	<string>实时通信报告</string>
+	<key>runningboardd</key>
+	<string>进程运行管理。控制每个 App 的启动、挂起、后台、终止</string>
+	<key>sbd</key>
+	<string>沙盒守护</string>
+	<key>screenshotd</key>
+	<string>截图服务</string>
+	<key>searchd</key>
+	<string>搜索索引守护。为 Spotlight 建索引</string>
+	<key>searchpartyd</key>
+	<string>查找网络（离线设备定位）</string>
+	<key>securityd</key>
+	<string>安全服务。管理钥匙串、密钥、密码</string>
+	<key>seld</key>
+	<string>安全元素守护（Secure Enclave）</string>
+	<key>sensorkitd</key>
+	<string>传感器套件</string>
+	<key>seserviced</key>
+	<string>安全元素服务（Secure Element，Apple Pay 芯片）</string>
+	<key>sh</key>
+	<string>Shell（精简版）</string>
+	<key>sharingd</key>
+	<string>共享服务。AirDrop、接力、共享剪贴板</string>
+	<key>siriinferenced</key>
+	<string>Siri 本地推理（设备端模型）</string>
+	<key>siriknowledged</key>
+	<string>Siri 知识库</string>
+	<key>sleep</key>
+	<string>延时命令。被脚本用来做轮询节拍</string>
+	<key>sleepd</key>
+	<string>睡眠追踪服务。睡眠数据采集与分析</string>
+	<key>sociallayerd</key>
+	<string>社交层服务。App 间的社交内容共享</string>
+	<key>sort</key>
+	<string>排序命令（管道临时进程，dsh-ps 自己起的）</string>
+	<key>splashboardd</key>
+	<string>启动画面守护。App 启动时的过渡动画和快照缓存</string>
+	<key>ssh:</key>
+	<string>SSH 服务端会话。DSH 通过它执行命令</string>
+	<key>sshd:</key>
+	<string>SSH 服务端会话（DSH 执行命令的通道）</string>
+	<key>suggestd</key>
+	<string>建议服务</string>
+	<key>swcd</key>
+	<string>共享 Web 凭据（网站与应用关联）</string>
+	<key>symptomsd</key>
+	<string>网络症状诊断（统计连接质量）</string>
+	<key>symptomsd-diag</key>
+	<string>网络诊断扩展</string>
+	<key>syncdefaultsd</key>
+	<string>偏好设置云同步（iCloud 同步 App 设置）</string>
+	<key>tail</key>
+	<string>取末尾行命令（管道临时进程）</string>
+	<key>tccd</key>
+	<string>隐私权限守护。管理相机、麦克风、相册、定位等授权</string>
+	<key>thermalmonitord</key>
+	<string>温度监控。过热时降频降亮度，防止烧毁</string>
+	<key>timed</key>
+	<string>时间服务。负责时区、夏令时、自动校时</string>
+	<key>tipsd</key>
+	<string>提示 App 服务</string>
+	<key>touchsetupd</key>
+	<string>触控设置</string>
+	<key>translationd</key>
+	<string>系统翻译服务</string>
+	<key>transparencyd</key>
+	<string>透明度验证（iMessage 联系人验证）</string>
+	<key>triald</key>
+	<string>实验分组（苹果 A/B 测试）</string>
+	<key>trustd</key>
+	<string>证书信任验证。验证 HTTPS 证书、App 签名</string>
+	<key>tzd</key>
+	<string>时区数据库守护</string>
+	<key>useractivityd</key>
+	<string>用户活动（接力、Siri 建议）</string>
+	<key>usernotificationsd</key>
+	<string>用户通知守护</string>
+	<key>videosubscriptionsd</key>
+	<string>视频订阅（Apple TV+）</string>
+	<key>vmd</key>
+	<string>语音邮件</string>
+	<key>voiced</key>
+	<string>语音录制服务</string>
+	<key>walletd</key>
+	<string>钱包</string>
+	<key>watchdogd</key>
+	<string>看门狗。监控进程是否卡死无响应，超时直接强杀</string>
+	<key>watchlistd</key>
+	<string>关注列表</string>
+	<key>wc</key>
+	<string>行数统计命令（管道临时进程）</string>
+	<key>wcd</key>
+	<string>Watch Connectivity 守护。iPhone 与 Apple Watch 通信</string>
+	<key>weatherd</key>
+	<string>天气服务。天气 App 与天气组件的数据源</string>
+	<key>webbookmarksd</key>
+	<string>书签同步</string>
+	<key>wifianalyticsd</key>
+	<string>WiFi 质量分析（会定期扫描周边 AP，耗电来源之一）</string>
+	<key>wifid</key>
+	<string>WiFi 守护。连接、扫描、漫游</string>
+	<key>wifip2pd</key>
+	<string>WiFi 点对点（AirDrop、隔空播放）</string>
+	<key>wifivelocityd</key>
+	<string>WiFi 速度管理</string>
+	<key>workoutd</key>
+	<string>体能训练</string>
+</dict>
+</plist>

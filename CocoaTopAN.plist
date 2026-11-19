@@ -1,0 +1,5 @@
+{
+    Filter = {
+        Bundles = ( "ru.domo.cocoatop64" );
+    };
+}

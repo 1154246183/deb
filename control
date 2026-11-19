@@ -1,0 +1,10 @@
+Package: com.dsh.cocoatopan
+Name: CocoaTop 中文注解
+Version: 1.0.0
+Architecture: iphoneos-arm64
+Description: 给 CocoaTop 进程列表加上中文作用说明。显示格式为「进程名 · 中文说明」，不改动原程序本体。翻译表在 /var/jb/Library/Application Support/CocoaTopAN/proc-cn.plist，可自行增删。
+Maintainer: dsh
+Author: dsh
+Section: Tweaks
+Depends: mobilesubstrate
+Installed-Size: 120

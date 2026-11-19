@@ -1,0 +1,16 @@
+#!/var/jb/bin/bash
+# postinst —— 安装翻译表
+JB=${JB:-/var/jb}
+DEST="$JB/Library/Application Support/CocoaTopAN"
+
+mkdir -p "$DEST" 2>/dev/null
+if [ -f "$JB/usr/share/cocoatop-an/proc-cn.plist" ]; then
+  cp "$JB/usr/share/cocoatop-an/proc-cn.plist" "$DEST/proc-cn.plist" 2>/dev/null
+  chmod 644 "$DEST/proc-cn.plist" 2>/dev/null
+fi
+if [ -f "$JB/Library/MobileSubstrate/DynamicLibraries/CocoaTopAN.plist" ]; then
+  chmod 644 "$JB/Library/MobileSubstrate/DynamicLibraries/CocoaTopAN.plist" 2>/dev/null
+fi
+
+killall -9 CocoaTop 2>/dev/null || true
+exit 0

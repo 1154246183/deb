@@ -17,7 +17,9 @@ jobs:
           sudo apt-get install -y \
             make fakeroot git curl unzip xz-utils \
             clang lld llvm libssl-dev libplist-dev pkg-config perl
-          clang --version | head -1
+          echo "--- 工具位置 ---"
+          which clang ld.lld lld ld64.lld || true
+          ls -l /usr/bin/ld.lld* /usr/bin/lld* 2>/dev/null | head
 
       - name: Install ldid
         run: |
@@ -25,7 +27,7 @@ jobs:
           cd /tmp/ldid
           make -j$(nproc) CXXFLAGS="-std=c++17 -I. -I./src"
           sudo install -m755 ./ldid /usr/local/bin/ldid
-          ldid -v 2>&1 | head -2
+          ldid -v 2>&1 | head -1
 
       - name: Setup Theos
         run: |
@@ -43,28 +45,35 @@ jobs:
           cp -r /tmp/sdkrepo/*.sdk $HOME/theos/sdks/
           ls -d $HOME/theos/sdks/*.sdk
 
-      - name: Fix toolchain path
+      - name: Fix toolchain (clang + lld)
         run: |
           set -eux
-          # Theos 硬编码查找 toolchain/linux/iphone/bin/clang，这里建软链指向系统 clang
           TC=$HOME/theos/toolchain/linux/iphone
           mkdir -p $TC/bin
-          for t in clang clang++ ld lld ldid nm strip ar ranlib; do
-            src=""
-            for c in /usr/bin/$t /usr/local/bin/$t; do
-              if [ -x "$c" ]; then src="$c"; break; fi
-            done
-            if [ -n "$src" ]; then
-              ln -sf "$src" $TC/bin/$t
-              echo "link $t -> $src"
-            else
-              echo "跳过 $t（系统无此命令）"
-            fi
+
+          # 编译器
+          ln -sf /usr/bin/clang      $TC/bin/clang
+          ln -sf /usr/bin/clang++    $TC/bin/clang++
+
+          # 关键：链接器必须是 LLD（GNU ld 不认 -fuse-ld=llvm，也不支持 Mach-O）
+          LLD=$(ls /usr/bin/ld.lld* /usr/lib/llvm-*/bin/ld.lld 2>/dev/null | head -1)
+          [ -z "$LLD" ] && LLD=$(which ld.lld || true)
+          echo "找到 LLD: $LLD"
+          if [ -z "$LLD" ]; then echo "LLD 缺失，尝试安装 lld-17"; sudo apt-get install -y lld-17; LLD=$(ls /usr/bin/ld.lld-17); fi
+          ln -sf "$LLD" $TC/bin/ld
+          ln -sf "$LLD" $TC/bin/ld.lld
+
+          # 其余 binutils
+          for t in nm strip ar ranlib; do
+            [ -x /usr/bin/$t ] && ln -sf /usr/bin/$t $TC/bin/$t
           done
+          ln -sf /usr/local/bin/ldid $TC/bin/ldid
+
           ls -la $TC/bin/
           $TC/bin/clang --version | head -2
+          $TC/bin/ld --version 2>&1 | head -3
 
-      - name: Build package (arm64 only, 不签名)
+      - name: Build package (arm64, 不签名)
         run: |
           set -eux
           make clean || true

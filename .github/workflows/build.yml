@@ -15,10 +15,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            make clang fakeroot git curl unzip xz-utils \
-            libssl-dev libplist-dev libplist++-dev pkg-config perl
-          echo "--- 依赖就绪 ---"
-          pkg-config --modversion libplist-2.0 || echo "libplist pkg-config 未找到"
+            make fakeroot git curl unzip xz-utils \
+            clang lld llvm libssl-dev libplist-dev pkg-config perl
+          clang --version | head -2
 
       - name: Install ldid
         run: |
@@ -34,6 +33,12 @@ jobs:
           echo "THEOS=$HOME/theos" >> $GITHUB_ENV
           echo "$HOME/theos/bin" >> $GITHUB_PATH
           mkdir -p $HOME/theos/sdks
+          # 关键：让 theos 用系统 clang（Linux 工具链）
+          mkdir -p $HOME/theos/toolchain/linux/iphone/bin
+          for t in clang clang++; do
+            sudo ln -sf "$(which $t)" /usr/local/bin/$t || true
+          done
+          echo "系统 clang: $(which clang)"
 
       - name: Download iOS SDK 16.5
         run: |
@@ -44,21 +49,17 @@ jobs:
           cp -r /tmp/sdkrepo/*.sdk $HOME/theos/sdks/
           ls -d $HOME/theos/sdks/*.sdk
 
-      - name: Build package (rootless, arm64e)
+      - name: Build package
         run: |
           set -eux
-          echo "=== 仓库内容 ==="
-          ls -la
-          echo "=== 编译 ==="
           make clean || true
           make package \
             FINALPACKAGE=1 \
             THEOS_PACKAGE_SCHEME=rootless \
             ARCHS="arm64 arm64e" \
-            TARGET="iphone:clang:16.5:15.0"
-          echo "=== 产物 ==="
+            TARGET="iphone:clang:16.5:15.0" \
+            CLANG="$(which clang)"
           find . -name '*.deb' -ls
-          ls -la packages/ || true
 
       - name: Show output
         if: always()

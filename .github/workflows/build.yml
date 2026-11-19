@@ -14,89 +14,117 @@ jobs:
       - name: Install deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            make fakeroot git curl unzip xz-utils \
-            clang lld llvm libssl-dev libplist-dev pkg-config perl
-          echo "--- 工具位置 ---"
-          which clang ld.lld lld ld64.lld || true
-          ls -l /usr/bin/ld.lld* /usr/bin/lld* 2>/dev/null | head
+          sudo apt-get install -y clang lld llvm libssl-dev libplist-dev pkg-config perl git curl unzip xz-utils dpkg fakeroot
+          echo "=== 工具 ==="
+          which clang ld64.lld ld.lld dpkg-deb fakeroot
+          ls -l /usr/bin/ld64.lld* 2>/dev/null || echo "ld64.lld 待建"
 
-      - name: Install ldid
+      - name: Setup ld64.lld
         run: |
-          git clone --depth 1 --recursive https://github.com/ProcursusTeam/ldid.git /tmp/ldid
-          cd /tmp/ldid
-          make -j$(nproc) CXXFLAGS="-std=c++17 -I. -I./src"
-          sudo install -m755 ./ldid /usr/local/bin/ldid
-          ldid -v 2>&1 | head -1
+          set -eux
+          # Ubuntu 的 lld 包提供 ld64.lld，用于链接 Mach-O
+          if [ ! -x /usr/bin/ld64.lld ]; then
+            for c in /usr/bin/ld64.lld-* /usr/lib/llvm-*/bin/ld64.lld; do
+              [ -x "$c" ] && sudo ln -sf "$c" /usr/bin/ld64.lld && break
+            done
+          fi
+          ls -l /usr/bin/ld64.lld || echo "未找到 ld64.lld"
+          /usr/bin/ld64.lld --version 2>&1 | head -2 || true
 
-      - name: Setup Theos
+      - name: Download iOS SDK
         run: |
-          git clone --recursive --depth 1 https://github.com/theos/theos.git $HOME/theos
-          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
-          echo "$HOME/theos/bin" >> $GITHUB_PATH
-          mkdir -p $HOME/theos/sdks
-
-      - name: Download iOS SDK 16.5
-        run: |
-          cd /tmp
-          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git sdkrepo
-          cd sdkrepo
+          set -eux
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git /tmp/sdkrepo
+          cd /tmp/sdkrepo
           git sparse-checkout set --no-cone 'iPhoneOS16.5.sdk'
-          cp -r /tmp/sdkrepo/*.sdk $HOME/theos/sdks/
-          ls -d $HOME/theos/sdks/*.sdk
+          mkdir -p $HOME/sdk
+          cp -r /tmp/sdkrepo/iPhoneOS16.5.sdk $HOME/sdk/
+          echo "SDK=$HOME/sdk/iPhoneOS16.5.sdk" >> $GITHUB_ENV
+          ls $HOME/sdk/iPhoneOS16.5.sdk | head
 
-      - name: Fix toolchain (clang + lld)
+      - name: Compile dylib
         run: |
           set -eux
-          TC=$HOME/theos/toolchain/linux/iphone
-          mkdir -p $TC/bin
+          SDK=${SDK}
+          mkdir -p out
 
-          # 编译器
-          ln -sf /usr/bin/clang      $TC/bin/clang
-          ln -sf /usr/bin/clang++    $TC/bin/clang++
+          clang -target arm64-apple-ios15.0.0 \
+            -isysroot "$SDK" \
+            -fobjc-arc \
+            -dynamiclib \
+            -fuse-ld=/usr/bin/ld64.lld \
+            -install_name /var/jb/Library/MobileSubstrate/DynamicLibraries/CocoaTopAN.dylib \
+            -framework Foundation -framework UIKit \
+            -Wl,-platform_version,ios,15.0,16.5 \
+            -O2 -o out/CocoaTopAN.dylib Tweak.x
 
-          # 关键：链接器必须是 LLD（GNU ld 不认 -fuse-ld=llvm，也不支持 Mach-O）
-          LLD=$(ls /usr/bin/ld.lld* /usr/lib/llvm-*/bin/ld.lld 2>/dev/null | head -1)
-          [ -z "$LLD" ] && LLD=$(which ld.lld || true)
-          echo "找到 LLD: $LLD"
-          if [ -z "$LLD" ]; then echo "LLD 缺失，尝试安装 lld-17"; sudo apt-get install -y lld-17; LLD=$(ls /usr/bin/ld.lld-17); fi
-          ln -sf "$LLD" $TC/bin/ld
-          ln -sf "$LLD" $TC/bin/ld.lld
+          ls -l out/
+          file out/CocoaTopAN.dylib || true
 
-          # 其余 binutils
-          for t in nm strip ar ranlib; do
-            [ -x /usr/bin/$t ] && ln -sf /usr/bin/$t $TC/bin/$t
-          done
-          ln -sf /usr/local/bin/ldid $TC/bin/ldid
-
-          ls -la $TC/bin/
-          $TC/bin/clang --version | head -2
-          $TC/bin/ld --version 2>&1 | head -3
-
-      - name: Build package (arm64, 不签名)
+      - name: Package deb (rootless)
         run: |
           set -eux
-          make clean || true
-          make package \
-            FINALPACKAGE=1 \
-            THEOS_PACKAGE_SCHEME=rootless \
-            ARCHS="arm64" \
-            TARGET="iphone:clang:16.5:15.0"
-          find . -name '*.deb' -ls
+          ROOT=stage
+          rm -rf $ROOT && mkdir -p \
+            "$ROOT/var/jb/Library/MobileSubstrate/DynamicLibraries" \
+            "$ROOT/var/jb/Library/Application Support/CocoaTopAN" \
+            "$ROOT/DEBIAN"
 
-      - name: Show output
-        if: always()
-        run: |
-          find . -name '*.deb' 2>/dev/null || true
-          find . -name '*.dylib' 2>/dev/null || true
-          ls -la packages/ 2>/dev/null || true
+          cp out/CocoaTopAN.dylib "$ROOT/var/jb/Library/MobileSubstrate/DynamicLibraries/"
+          cp CocoaTopAN.plist      "$ROOT/var/jb/Library/MobileSubstrate/DynamicLibraries/"
+          cp proc-cn.plist         "$ROOT/var/jb/Library/Application Support/CocoaTopAN/"
+
+          # 控制文件
+          cat > $ROOT/DEBIAN/control <<'EOF'
+Package: com.dsh.cocoatopan
+Name: CocoaTop 中文注解
+Version: 1.0.0
+Architecture: iphoneos-arm64
+Description: 给 CocoaTop 进程列表加中文作用说明，显示为「进程名 · 说明」。翻译表可自行增删。
+Maintainer: dsh
+Author: dsh
+Section: Tweaks
+Depends: mobilesubstrate
+Installed-Size: 120
+EOF
+
+          # 安装后：重启 launchdhook 清 libhooker 黑名单，并重启 CocoaTop
+          cat > $ROOT/DEBIAN/postinst <<'EOF'
+#!/bin/sh
+export PATH=/var/jb/usr/bin:/var/jb/bin:/var/bin:/usr/bin:/bin:/usr/sbin:/sbin
+DEST="/var/jb/Library/Application Support/CocoaTopAN"
+if [ -f "$DEST/proc-cn.plist" ]; then
+  chmod 644 "$DEST/proc-cn.plist" 2>/dev/null
+fi
+DL="/var/jb/Library/MobileSubstrate/DynamicLibraries"
+if [ -f "$DL/CocoaTopAN.dylib" ]; then
+  chmod 755 "$DL/CocoaTopAN.dylib" 2>/dev/null
+  chown mobile:wheel "$DL/CocoaTopAN.dylib" 2>/dev/null
+fi
+if [ -f "$DL/CocoaTopAN.plist" ]; then
+  chmod 644 "$DL/CocoaTopAN.plist" 2>/dev/null
+fi
+# XinaA15: 换 dylib 后 libhooker 可能黑名单，重启 launchdhook
+launchctl stop launchdhook 2>/dev/null || true
+sleep 1
+launchctl start launchdhook 2>/dev/null || true
+killall -9 CocoaTop 2>/dev/null || true
+exit 0
+EOF
+          chmod 755 $ROOT/DEBIAN/postinst
+
+          # 打包
+          dpkg-deb -b $ROOT CocoaTopAN_1.0.0_iphoneos-arm64.deb
+          ls -l *.deb
+          echo "=== 内容 ==="
+          dpkg-deb -c CocoaTopAN_1.0.0_iphoneos-arm64.deb
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: CocoaTopAN-deb
           path: |
-            packages/*.deb
-            .theos/obj/**/*.dylib
+            CocoaTopAN_*.deb
+            out/*.dylib
           if-no-files-found: warn
           retention-days: 90

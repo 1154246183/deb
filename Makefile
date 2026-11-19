@@ -9,7 +9,6 @@ TWEAK_NAME = CocoaTopAN
 CocoaTopAN_FILES = Tweak.x
 CocoaTopAN_CFLAGS = -fobjc-arc
 CocoaTopAN_FRAMEWORKS = UIKit Foundation
-CocoaTopAN_INSTALL_PATH = /Library/MobileSubstrate/DynamicLibraries
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 

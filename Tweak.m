@@ -1,23 +1,35 @@
-// 诊断版：确认 dylib 是否加载、hook 是否生效
-// 往固定路径写标记文件，用它判断真实状态
+// CocoaTop 中文注解 v2 —— 用 substrate 的 MSHookMessageEx（与原版汉化 dylib 同一条路）
+// 诊断写到 App 自己的容器 Documents，避免沙盒阻挡
+// 目标：XinaA15 rootful (/var/jb) / iOS 16 / arm64
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
-#import <sys/stat.h>
-#import <stdio.h>
 
-static const char *kMark = "/var/mobile/Library/Logs/dsh/cocoatopan-diag.txt";
+// ---- substrate ----
+extern void MSHookMessageEx(Class _class, SEL message, IMP hook, IMP *old);
+
+// ---- 诊断 ----
+static char gDiag[512] = {0};
 static int gDrawCount = 0;
 static int gHitCount = 0;
 
+static NSString *DiagPath(void) {
+    // App 容器 Documents 一定可写
+    NSArray *dirs = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *doc = dirs.count ? dirs[0] : NSTemporaryDirectory();
+    return [doc stringByAppendingPathComponent:@"cocoatopan-diag.txt"];
+}
+
 static void Mark(NSString *line) {
-    FILE *f = fopen(kMark, "a");
+    NSString *p = DiagPath();
+    FILE *f = fopen(p.UTF8String, "a");
     if (!f) return;
     fprintf(f, "%s\n", line.UTF8String);
     fclose(f);
 }
 
+// ---- 翻译表 ----
 static NSDictionary *gDict = nil;
 
 static void LoadDict(void) {
@@ -26,12 +38,13 @@ static void LoadDict(void) {
     NSArray *cands = @[
         [dir stringByAppendingPathComponent:@"proc-cn.plist"],
         @"/var/jb/Library/Application Support/CocoaTopAN/proc-cn.plist",
+        @"/Library/Application Support/CocoaTopAN/proc-cn.plist",
     ];
     for (NSString *p in cands) {
         NSDictionary *d = [NSDictionary dictionaryWithContentsOfFile:p];
         if (d.count) {
             gDict = d;
-            Mark([NSString stringWithFormat:@"DICT OK %lu entries from %@", (unsigned long)d.count, p]);
+            Mark([NSString stringWithFormat:@"DICT OK %lu from %@", (unsigned long)d.count, p]);
             return;
         }
     }
@@ -39,76 +52,61 @@ static void LoadDict(void) {
     Mark(@"DICT MISS");
 }
 
-// hook: -[NSString drawInRect:withAttributes:]
-static void (*o1)(id, SEL, CGRect, NSDictionary *);
-static void h1(id self, SEL _cmd, CGRect r, NSDictionary *a) {
-    gDrawCount++;
-    NSString *s = (NSString *)self;
-    if (gDrawCount <= 5) {
-        Mark([NSString stringWithFormat:@"drawInRect #%d: [%@]", gDrawCount, s]);
-    }
+static NSString *Annotate(NSString *s) {
+    if (s.length < 2 || s.length > 40) return s;
+    if ([s containsString:@"/"] || [s containsString:@" "] || [s containsString:@"\n"]) return s;
+    if ([s containsString:@" · "]) return s;
     LoadDict();
-    if (s.length > 1 && s.length < 40 && ![s containsString:@"/"] && ![s containsString:@" "] && ![s containsString:@" · "]) {
-        NSString *cn = gDict[s];
-        if (cn) {
-            gHitCount++;
-            if (gHitCount <= 5) Mark([NSString stringWithFormat:@"HIT: %@", s]);
-            NSString *newS = [NSString stringWithFormat:@"%@ · %@", s, cn];
-            NSMutableDictionary *a2 = [a mutableCopy];
-            UIFont *f = a2[NSFontAttributeName];
-            if (f) a2[NSFontAttributeName] = [f fontWithSize:f.pointSize * 0.7];
-            [newS drawInRect:r withAttributes:a2];
-            return;
-        }
-    }
-    o1(self, _cmd, r, a);
+    NSString *cn = gDict[s];
+    if (!cn) return s;
+    return [NSString stringWithFormat:@"%@ · %@", s, cn];
 }
 
-// hook: -[NSAttributedString drawInRect:] （无属性参数版）
-static void (*o2)(id, SEL, CGRect);
-static void h2(id self, SEL _cmd, CGRect r) {
-    gDrawCount++;
-    NSAttributedString *as = (NSAttributedString *)self;
-    NSString *s = as.string;
-    if (gDrawCount <= 5) Mark([NSString stringWithFormat:@"attrDraw #%d: [%@]", gDrawCount, s]);
-    LoadDict();
-    if (s.length > 1 && s.length < 40 && ![s containsString:@"/"] && ![s containsString:@" "] && ![s containsString:@" · "]) {
-        NSString *cn = gDict[s];
-        if (cn) {
-            gHitCount++;
-            if (gHitCount <= 5) Mark([NSString stringWithFormat:@"HIT2: %@", s]);
-            NSMutableAttributedString *m = [as mutableCopy];
-            [m replaceCharactersInRange:NSMakeRange(0, m.length)
-                             withString:[NSString stringWithFormat:@"%@ · %@", s, cn]];
-            [m drawInRect:r];
-            return;
-        }
+// ---- hook: UILabel setText: ----
+static void (*orig_setText)(id, SEL, NSString *);
+static void hook_setText(id self, SEL _cmd, NSString *text) {
+    NSString *r = Annotate(text);
+    if (r != text) {
+        gHitCount++;
+        if (gHitCount <= 8) Mark([NSString stringWithFormat:@"HIT setText: %@", text]);
     }
-    o2(self, _cmd, r);
+    orig_setText(self, _cmd, r);
+}
+
+// ---- hook: NSString drawInRect:withAttributes: ----
+static void (*orig_drawAttr)(id, SEL, CGRect, NSDictionary *);
+static void hook_drawAttr(id self, SEL _cmd, CGRect rect, NSDictionary *attrs) {
+    gDrawCount++;
+    NSString *s = (NSString *)self;
+    if (gDrawCount <= 8) Mark([NSString stringWithFormat:@"draw#%d [%@]", gDrawCount, s]);
+    NSString *r = Annotate(s);
+    if (r != s) {
+        gHitCount++;
+        if (gHitCount <= 8) Mark([NSString stringWithFormat:@"HIT draw: %@", s]);
+        NSMutableDictionary *a2 = [attrs mutableCopy];
+        UIFont *f = a2[NSFontAttributeName];
+        if (f) a2[NSFontAttributeName] = [f fontWithSize:f.pointSize * 0.7];
+        [r drawInRect:rect withAttributes:a2];
+        return;
+    }
+    orig_drawAttr(self, _cmd, rect, attrs);
 }
 
 __attribute__((constructor))
 static void Init(void) {
     @autoreleasepool {
-        mkdir("/var/mobile/Library/Logs", 0755);
-        mkdir("/var/mobile/Library/Logs/dsh", 0777);
-        Mark(@"=== CocoaTopAN diag START ===");
+        Mark(@"=== v2 START ===");
         Mark([NSString stringWithFormat:@"bundle=%@", [[NSBundle mainBundle] bundlePath]]);
+        Mark([NSString stringWithFormat:@"diag=%@", DiagPath()]);
+
         LoadDict();
 
-        Method m1 = class_getInstanceMethod([NSString class], @selector(drawInRect:withAttributes:));
-        if (m1) {
-            o1 = (void *)method_getImplementation(m1);
-            method_setImplementation(m1, (IMP)h1);
-            Mark(@"hooked NSString drawInRect:withAttributes:");
-        } else Mark(@"MISS drawInRect:withAttributes:");
+        MSHookMessageEx([UILabel class], @selector(setText:), (IMP)hook_setText, (IMP *)&orig_setText);
+        Mark(@"hooked UILabel setText:");
 
-        Method m2 = class_getInstanceMethod([NSAttributedString class], @selector(drawInRect:));
-        if (m2) {
-            o2 = (void *)method_getImplementation(m2);
-            method_setImplementation(m2, (IMP)h2);
-            Mark(@"hooked NSAttributedString drawInRect:");
-        } else Mark(@"MISS NSAttributedString drawInRect:");
+        MSHookMessageEx([NSString class], @selector(drawInRect:withAttributes:),
+                        (IMP)hook_drawAttr, (IMP *)&orig_drawAttr);
+        Mark(@"hooked NSString drawInRect:withAttributes:");
 
         Mark(@"=== ready ===");
     }

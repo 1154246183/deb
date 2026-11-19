@@ -1,4 +1,4 @@
-name: Build CocoaTopAN
+name: Build CocoaTopAN v2
 
 on:
   push:
@@ -35,6 +35,23 @@ jobs:
           cp -r /tmp/sdkrepo/iPhoneOS16.5.sdk "$HOME/sdk/"
           echo "SDK=$HOME/sdk/iPhoneOS16.5.sdk" >> "$GITHUB_ENV"
 
+      - name: Create substrate stub
+        run: |
+          # 编一个只声明 MSHookMessageEx 的 stub dylib，用来链接
+          # 运行时真正的实现由 App 内的 libsubstrate.dylib 提供
+          mkdir -p stub
+          cat > stub/substrate_stub.c <<'EOF'
+          typedef void (*IMP_t)(void);
+          void MSHookMessageEx(void *cls, void *sel, IMP_t hook, IMP_t *old) {}
+          EOF
+          clang -target arm64-apple-ios15.0.0 \
+            -isysroot "$SDK" -dynamiclib \
+            -fuse-ld=/usr/bin/ld64.lld \
+            -install_name @executable_path/libsubstrate.dylib \
+            -Wl,-platform_version,ios,15.0,16.5 \
+            -o stub/libsubstrate.dylib stub/substrate_stub.c
+          ls -l stub/
+
       - name: Compile dylib
         run: |
           mkdir -p out
@@ -45,18 +62,21 @@ jobs:
             -fuse-ld=/usr/bin/ld64.lld \
             -install_name @executable_path/CocoaTopAN.dylib \
             -framework Foundation -framework UIKit \
+            -L stub -lsubstrate \
             -Wl,-platform_version,ios,15.0,16.5 \
             -O2 -o out/CocoaTopAN.dylib Tweak.m
           ls -l out/
-          echo "=== magic（必须 cf fa ed fe / 0c 00 00 01）==="
+          echo "=== 依赖 ==="
+          grep -a -o -E '@executable_path/[A-Za-z0-9_.]+\.dylib|/usr/lib/lib[A-Za-z.0-9]+\.dylib' out/CocoaTopAN.dylib 2>/dev/null | sort -u
+          echo "=== magic ==="
           od -An -tx1 -N8 out/CocoaTopAN.dylib
-          echo "=== pacibsp 数量（必须 0）==="
+          echo "=== pacibsp ==="
           od -An -tx4 out/CocoaTopAN.dylib | tr -s ' ' '\n' | grep -c 'd503233f' || echo 0
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: CocoaTopAN-dylib
+          name: CocoaTopAN-v2
           path: out/*.dylib
           if-no-files-found: warn
           retention-days: 90

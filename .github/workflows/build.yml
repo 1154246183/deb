@@ -15,6 +15,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y make clang fakeroot git curl unzip xz-utils libssl-dev perl
+          sudo apt-get install -y libplist-utils
 
       - name: Setup Theos
         run: |
@@ -32,13 +33,21 @@ jobs:
           cp -r /tmp/sdkrepo/*.sdk $HOME/theos/sdks/ 2>/dev/null || true
           ls -d $HOME/theos/sdks/*.sdk
 
-      - name: Install ldid
+      - name: Install ldid (prebuilt)
         run: |
-          git clone --depth 1 --recursive https://github.com/ProcursusTeam/ldid.git /tmp/ldid
-          cd /tmp/ldid
-          make -j$(nproc) CXXFLAGS="-std=c++17" || make -j$(nproc)
-          sudo install -m755 ./ldid /usr/local/bin/ldid
-          ldid -v || echo "ldid print ok"
+          # 优先用 apt 里的，没有就下预编译
+          if sudo apt-get install -y ldid 2>/dev/null; then
+            ldid -v || echo "apt ldid ok"
+          else
+            curl -L -o /tmp/ldid.zip https://github.com/ProcursusTeam/ldid/releases/latest/download/ldid_linux_x86_64.zip || true
+            if [ -f /tmp/ldid.zip ]; then
+              unzip -o /tmp/ldid.zip -d /tmp/ldidbin || true
+              sudo cp /tmp/ldidbin/ldid /usr/local/bin/ldid 2>/dev/null || true
+              sudo chmod +x /usr/local/bin/ldid 2>/dev/null || true
+            fi
+          fi
+          which ldid || echo "NO LDID"
+          ldid -v 2>&1 | head -3 || true
 
       - name: Build package
         run: |
@@ -51,10 +60,13 @@ jobs:
         run: |
           ls -la tweak/packages 2>/dev/null || true
           find tweak -name '*.deb' 2>/dev/null || true
+          find tweak -name '*.dylib' 2>/dev/null || true
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: CocoaTopAN
-          path: tweak/packages/*.deb
+          path: |
+            tweak/packages/*.deb
+            tweak/.theos/obj/**/*.dylib
           if-no-files-found: warn

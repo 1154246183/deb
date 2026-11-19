@@ -4,6 +4,8 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
+#import <sys/stat.h>
+#import <stdio.h>
 
 static const char *kMark = "/var/mobile/Library/Logs/dsh/cocoatopan-diag.txt";
 static int gDrawCount = 0;

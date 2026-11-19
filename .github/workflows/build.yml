@@ -15,39 +15,33 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y clang lld llvm libssl-dev libplist-dev pkg-config perl git curl unzip xz-utils dpkg fakeroot
-          echo "=== 工具 ==="
-          which clang ld64.lld ld.lld dpkg-deb fakeroot
-          ls -l /usr/bin/ld64.lld* 2>/dev/null || echo "ld64.lld 待建"
+          which clang dpkg-deb fakeroot
 
       - name: Setup ld64.lld
         run: |
-          set -eux
-          # Ubuntu 的 lld 包提供 ld64.lld，用于链接 Mach-O
+          for c in /usr/bin/ld64.lld /usr/bin/ld64.lld-* /usr/lib/llvm-*/bin/ld64.lld; do
+            if [ -x "$c" ]; then echo "found $c"; break; fi
+          done
           if [ ! -x /usr/bin/ld64.lld ]; then
             for c in /usr/bin/ld64.lld-* /usr/lib/llvm-*/bin/ld64.lld; do
-              [ -x "$c" ] && sudo ln -sf "$c" /usr/bin/ld64.lld && break
+              if [ -x "$c" ]; then sudo ln -sf "$c" /usr/bin/ld64.lld; break; fi
             done
           fi
-          ls -l /usr/bin/ld64.lld || echo "未找到 ld64.lld"
-          /usr/bin/ld64.lld --version 2>&1 | head -2 || true
+          ls -l /usr/bin/ld64.lld && /usr/bin/ld64.lld --version | head -1
 
       - name: Download iOS SDK
         run: |
-          set -eux
           git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git /tmp/sdkrepo
           cd /tmp/sdkrepo
           git sparse-checkout set --no-cone 'iPhoneOS16.5.sdk'
-          mkdir -p $HOME/sdk
-          cp -r /tmp/sdkrepo/iPhoneOS16.5.sdk $HOME/sdk/
-          echo "SDK=$HOME/sdk/iPhoneOS16.5.sdk" >> $GITHUB_ENV
-          ls $HOME/sdk/iPhoneOS16.5.sdk | head
+          mkdir -p "$HOME/sdk"
+          cp -r /tmp/sdkrepo/iPhoneOS16.5.sdk "$HOME/sdk/"
+          echo "SDK=$HOME/sdk/iPhoneOS16.5.sdk" >> "$GITHUB_ENV"
+          ls "$HOME/sdk/iPhoneOS16.5.sdk" | head -5
 
       - name: Compile dylib
         run: |
-          set -eux
-          SDK=${SDK}
           mkdir -p out
-
           clang -target arm64-apple-ios15.0.0 \
             -isysroot "$SDK" \
             -fobjc-arc \
@@ -57,66 +51,60 @@ jobs:
             -framework Foundation -framework UIKit \
             -Wl,-platform_version,ios,15.0,16.5 \
             -O2 -o out/CocoaTopAN.dylib Tweak.x
-
           ls -l out/
-          file out/CocoaTopAN.dylib || true
+          file out/CocoaTopAN.dylib
 
-      - name: Package deb (rootless)
+      - name: Build control file
         run: |
-          set -eux
+          mkdir -p pkgtmp
+          printf '%s\n' \
+            'Package: com.dsh.cocoatopan' \
+            'Name: CocoaTop 中文注解' \
+            'Version: 1.0.0' \
+            'Architecture: iphoneos-arm64' \
+            'Description: 给 CocoaTop 进程列表加中文作用说明，显示为「进程名 · 说明」。' \
+            'Maintainer: dsh' \
+            'Author: dsh' \
+            'Section: Tweaks' \
+            'Depends: mobilesubstrate' \
+            'Installed-Size: 120' \
+            > pkgtmp/control
+          cat pkgtmp/control
+
+      - name: Build postinst
+        run: |
+          printf '%s\n' \
+            '#!/bin/sh' \
+            'export PATH=/var/jb/usr/bin:/var/jb/bin:/var/bin:/usr/bin:/bin:/usr/sbin:/sbin' \
+            'DEST="/var/jb/Library/Application Support/CocoaTopAN"' \
+            'DL="/var/jb/Library/MobileSubstrate/DynamicLibraries"' \
+            '[ -f "$DEST/proc-cn.plist" ] && chmod 644 "$DEST/proc-cn.plist"' \
+            '[ -f "$DL/CocoaTopAN.dylib" ] && chmod 755 "$DL/CocoaTopAN.dylib"' \
+            '[ -f "$DL/CocoaTopAN.plist" ] && chmod 644 "$DL/CocoaTopAN.plist"' \
+            'launchctl stop launchdhook 2>/dev/null' \
+            'sleep 1' \
+            'launchctl start launchdhook 2>/dev/null' \
+            'killall -9 CocoaTop 2>/dev/null' \
+            'exit 0' \
+            > pkgtmp/postinst
+          chmod 755 pkgtmp/postinst
+          cat pkgtmp/postinst
+
+      - name: Package deb
+        run: |
           ROOT=stage
-          rm -rf $ROOT && mkdir -p \
-            "$ROOT/var/jb/Library/MobileSubstrate/DynamicLibraries" \
-            "$ROOT/var/jb/Library/Application Support/CocoaTopAN" \
-            "$ROOT/DEBIAN"
-
+          rm -rf "$ROOT"
+          mkdir -p "$ROOT/var/jb/Library/MobileSubstrate/DynamicLibraries"
+          mkdir -p "$ROOT/var/jb/Library/Application Support/CocoaTopAN"
+          mkdir -p "$ROOT/DEBIAN"
           cp out/CocoaTopAN.dylib "$ROOT/var/jb/Library/MobileSubstrate/DynamicLibraries/"
-          cp CocoaTopAN.plist      "$ROOT/var/jb/Library/MobileSubstrate/DynamicLibraries/"
-          cp proc-cn.plist         "$ROOT/var/jb/Library/Application Support/CocoaTopAN/"
-
-          # 控制文件
-          cat > $ROOT/DEBIAN/control <<'EOF'
-Package: com.dsh.cocoatopan
-Name: CocoaTop 中文注解
-Version: 1.0.0
-Architecture: iphoneos-arm64
-Description: 给 CocoaTop 进程列表加中文作用说明，显示为「进程名 · 说明」。翻译表可自行增删。
-Maintainer: dsh
-Author: dsh
-Section: Tweaks
-Depends: mobilesubstrate
-Installed-Size: 120
-EOF
-
-          # 安装后：重启 launchdhook 清 libhooker 黑名单，并重启 CocoaTop
-          cat > $ROOT/DEBIAN/postinst <<'EOF'
-#!/bin/sh
-export PATH=/var/jb/usr/bin:/var/jb/bin:/var/bin:/usr/bin:/bin:/usr/sbin:/sbin
-DEST="/var/jb/Library/Application Support/CocoaTopAN"
-if [ -f "$DEST/proc-cn.plist" ]; then
-  chmod 644 "$DEST/proc-cn.plist" 2>/dev/null
-fi
-DL="/var/jb/Library/MobileSubstrate/DynamicLibraries"
-if [ -f "$DL/CocoaTopAN.dylib" ]; then
-  chmod 755 "$DL/CocoaTopAN.dylib" 2>/dev/null
-  chown mobile:wheel "$DL/CocoaTopAN.dylib" 2>/dev/null
-fi
-if [ -f "$DL/CocoaTopAN.plist" ]; then
-  chmod 644 "$DL/CocoaTopAN.plist" 2>/dev/null
-fi
-# XinaA15: 换 dylib 后 libhooker 可能黑名单，重启 launchdhook
-launchctl stop launchdhook 2>/dev/null || true
-sleep 1
-launchctl start launchdhook 2>/dev/null || true
-killall -9 CocoaTop 2>/dev/null || true
-exit 0
-EOF
-          chmod 755 $ROOT/DEBIAN/postinst
-
-          # 打包
-          dpkg-deb -b $ROOT CocoaTopAN_1.0.0_iphoneos-arm64.deb
+          cp CocoaTopAN.plist "$ROOT/var/jb/Library/MobileSubstrate/DynamicLibraries/"
+          cp proc-cn.plist "$ROOT/var/jb/Library/Application Support/CocoaTopAN/"
+          cp pkgtmp/control "$ROOT/DEBIAN/"
+          cp pkgtmp/postinst "$ROOT/DEBIAN/"
+          dpkg-deb -b "$ROOT" CocoaTopAN_1.0.0_iphoneos-arm64.deb
           ls -l *.deb
-          echo "=== 内容 ==="
+          echo "=== deb 内容 ==="
           dpkg-deb -c CocoaTopAN_1.0.0_iphoneos-arm64.deb
 
       - uses: actions/upload-artifact@v4

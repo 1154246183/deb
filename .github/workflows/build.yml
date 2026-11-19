@@ -19,9 +19,6 @@ jobs:
 
       - name: Setup ld64.lld
         run: |
-          for c in /usr/bin/ld64.lld /usr/bin/ld64.lld-* /usr/lib/llvm-*/bin/ld64.lld; do
-            if [ -x "$c" ]; then echo "found $c"; break; fi
-          done
           if [ ! -x /usr/bin/ld64.lld ]; then
             for c in /usr/bin/ld64.lld-* /usr/lib/llvm-*/bin/ld64.lld; do
               if [ -x "$c" ]; then sudo ln -sf "$c" /usr/bin/ld64.lld; break; fi
@@ -37,9 +34,8 @@ jobs:
           mkdir -p "$HOME/sdk"
           cp -r /tmp/sdkrepo/iPhoneOS16.5.sdk "$HOME/sdk/"
           echo "SDK=$HOME/sdk/iPhoneOS16.5.sdk" >> "$GITHUB_ENV"
-          ls "$HOME/sdk/iPhoneOS16.5.sdk" | head -5
 
-      - name: Compile dylib
+      - name: Compile dylib (arm64, no PAC)
         run: |
           mkdir -p out
           clang -target arm64-apple-ios15.0.0 \
@@ -47,12 +43,15 @@ jobs:
             -fobjc-arc \
             -dynamiclib \
             -fuse-ld=/usr/bin/ld64.lld \
-            -install_name /var/jb/Library/MobileSubstrate/DynamicLibraries/CocoaTopAN.dylib \
+            -install_name /Library/MobileSubstrate/DynamicLibraries/CocoaTopAN.dylib \
             -framework Foundation -framework UIKit \
             -Wl,-platform_version,ios,15.0,16.5 \
             -O2 -o out/CocoaTopAN.dylib Tweak.m
           ls -l out/
-          file out/CocoaTopAN.dylib
+          echo "=== magic ==="
+          od -An -tx1 -N8 out/CocoaTopAN.dylib
+          echo "=== pacibsp 数量（必须为 0）==="
+          od -An -tx4 out/CocoaTopAN.dylib | tr -s ' ' '\n' | grep -c 'd503233f' || echo 0
 
       - name: Build control file
         run: |
@@ -61,7 +60,7 @@ jobs:
             'Package: com.dsh.cocoatopan' \
             'Name: CocoaTop 中文注解' \
             'Version: 1.0.0' \
-            'Architecture: iphoneos-arm64' \
+            'Architecture: iphoneos-arm' \
             'Description: 给 CocoaTop 进程列表加中文作用说明，显示为「进程名 · 说明」。' \
             'Maintainer: dsh' \
             'Author: dsh' \
@@ -69,15 +68,14 @@ jobs:
             'Depends: mobilesubstrate' \
             'Installed-Size: 120' \
             > pkgtmp/control
-          cat pkgtmp/control
 
       - name: Build postinst
         run: |
           printf '%s\n' \
             '#!/bin/sh' \
             'export PATH=/var/jb/usr/bin:/var/jb/bin:/var/bin:/usr/bin:/bin:/usr/sbin:/sbin' \
-            'DEST="/var/jb/Library/Application Support/CocoaTopAN"' \
-            'DL="/var/jb/Library/MobileSubstrate/DynamicLibraries"' \
+            'DL="/Library/MobileSubstrate/DynamicLibraries"' \
+            'DEST="/Library/Application Support/CocoaTopAN"' \
             '[ -f "$DEST/proc-cn.plist" ] && chmod 644 "$DEST/proc-cn.plist"' \
             '[ -f "$DL/CocoaTopAN.dylib" ] && chmod 755 "$DL/CocoaTopAN.dylib"' \
             '[ -f "$DL/CocoaTopAN.plist" ] && chmod 644 "$DL/CocoaTopAN.plist"' \
@@ -88,24 +86,23 @@ jobs:
             'exit 0' \
             > pkgtmp/postinst
           chmod 755 pkgtmp/postinst
-          cat pkgtmp/postinst
 
       - name: Package deb
         run: |
           ROOT=stage
           rm -rf "$ROOT"
-          mkdir -p "$ROOT/var/jb/Library/MobileSubstrate/DynamicLibraries"
-          mkdir -p "$ROOT/var/jb/Library/Application Support/CocoaTopAN"
+          mkdir -p "$ROOT/Library/MobileSubstrate/DynamicLibraries"
+          mkdir -p "$ROOT/Library/Application Support/CocoaTopAN"
           mkdir -p "$ROOT/DEBIAN"
-          cp out/CocoaTopAN.dylib "$ROOT/var/jb/Library/MobileSubstrate/DynamicLibraries/"
-          cp CocoaTopAN.plist "$ROOT/var/jb/Library/MobileSubstrate/DynamicLibraries/"
-          cp proc-cn.plist "$ROOT/var/jb/Library/Application Support/CocoaTopAN/"
+          cp out/CocoaTopAN.dylib "$ROOT/Library/MobileSubstrate/DynamicLibraries/"
+          cp CocoaTopAN.plist "$ROOT/Library/MobileSubstrate/DynamicLibraries/"
+          cp proc-cn.plist "$ROOT/Library/Application Support/CocoaTopAN/"
           cp pkgtmp/control "$ROOT/DEBIAN/"
           cp pkgtmp/postinst "$ROOT/DEBIAN/"
-          dpkg-deb -b "$ROOT" CocoaTopAN_1.0.0_iphoneos-arm64.deb
+          dpkg-deb -b "$ROOT" CocoaTopAN_1.0.0_iphoneos-arm.deb
           ls -l *.deb
-          echo "=== deb 内容 ==="
-          dpkg-deb -c CocoaTopAN_1.0.0_iphoneos-arm64.deb
+          dpkg-deb -I CocoaTopAN_1.0.0_iphoneos-arm.deb | head -12
+          dpkg-deb -c CocoaTopAN_1.0.0_iphoneos-arm.deb
 
       - uses: actions/upload-artifact@v4
         if: always()

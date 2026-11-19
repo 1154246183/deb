@@ -17,7 +17,7 @@ jobs:
           sudo apt-get install -y \
             make fakeroot git curl unzip xz-utils \
             clang lld llvm libssl-dev libplist-dev pkg-config perl
-          clang --version | head -2
+          clang --version | head -1
 
       - name: Install ldid
         run: |
@@ -33,12 +33,6 @@ jobs:
           echo "THEOS=$HOME/theos" >> $GITHUB_ENV
           echo "$HOME/theos/bin" >> $GITHUB_PATH
           mkdir -p $HOME/theos/sdks
-          # 关键：让 theos 用系统 clang（Linux 工具链）
-          mkdir -p $HOME/theos/toolchain/linux/iphone/bin
-          for t in clang clang++; do
-            sudo ln -sf "$(which $t)" /usr/local/bin/$t || true
-          done
-          echo "系统 clang: $(which clang)"
 
       - name: Download iOS SDK 16.5
         run: |
@@ -49,16 +43,36 @@ jobs:
           cp -r /tmp/sdkrepo/*.sdk $HOME/theos/sdks/
           ls -d $HOME/theos/sdks/*.sdk
 
-      - name: Build package
+      - name: Fix toolchain path
+        run: |
+          set -eux
+          # Theos 硬编码查找 toolchain/linux/iphone/bin/clang，这里建软链指向系统 clang
+          TC=$HOME/theos/toolchain/linux/iphone
+          mkdir -p $TC/bin
+          for t in clang clang++ ld lld ldid nm strip ar ranlib; do
+            src=""
+            for c in /usr/bin/$t /usr/local/bin/$t; do
+              if [ -x "$c" ]; then src="$c"; break; fi
+            done
+            if [ -n "$src" ]; then
+              ln -sf "$src" $TC/bin/$t
+              echo "link $t -> $src"
+            else
+              echo "跳过 $t（系统无此命令）"
+            fi
+          done
+          ls -la $TC/bin/
+          $TC/bin/clang --version | head -2
+
+      - name: Build package (arm64 only, 不签名)
         run: |
           set -eux
           make clean || true
           make package \
             FINALPACKAGE=1 \
             THEOS_PACKAGE_SCHEME=rootless \
-            ARCHS="arm64 arm64e" \
-            TARGET="iphone:clang:16.5:15.0" \
-            CLANG="$(which clang)"
+            ARCHS="arm64" \
+            TARGET="iphone:clang:16.5:15.0"
           find . -name '*.deb' -ls
 
       - name: Show output
